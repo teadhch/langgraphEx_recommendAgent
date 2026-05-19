@@ -9,6 +9,7 @@ import operator
 # TypedDict : 딕셔너리처럼 사용하지만, 어떤 key에 해당하는 데이터 타입을 정의 할 수 있습니다.
 # 예) state["budget"]은 int타입이어야 한다. 라는 구조를 명확하게 하기 위해...
 
+
 class TravelState(TypedDict) :
     """
     여행 계획 그래프 전체에서 공유할 State 정의입니다.
@@ -34,7 +35,6 @@ class TravelState(TypedDict) :
     TypedDict를 사용하면 코드 편집기나 타입 검사 도구가
     어느 정도 실수를 잡아줄 수 있습니다.
     """
-     
     # 사용자 입력 필드
     budget: int # 예산
     days: int # 일정. (예 : 4박 5일 -> 4)
@@ -86,3 +86,60 @@ class TravelState(TypedDict) :
     # ["입력 확인 완료", "목적지 추천 완료"]
     #
     # 따라서 전체 처리 과정을 순서대로 기록할 수 있습니다.
+
+def make_initial_state(budget:int, days:int) -> TravelState:
+    """
+    그래프 실행을 시작하기 위한 초기 State를 만드는 함수입니다.
+    매개변수:
+    --------
+    budget:
+        사용자가 입력한 예산입니다.
+        단위는 만원입니다.
+    days:
+        사용자가 입력한 여행 박 수입니다.
+    반환값:
+    -------
+    TravelState:
+        LangGraph에 전달할 초기 State 딕셔너리입니다.
+    왜 빈 값들을 미리 넣어둘까?
+    -------------------------
+    그래프가 실행되기 전에는 destination, itinerary, hotels 등이 없습니다.
+    하지만 State 구조상 필요한 key들이므로
+    일단 빈 문자열, 빈 리스트, 빈 딕셔너리로 초기화합니다.
+    이후 각 Node가 자기 역할에 맞게 값을 채웁니다.
+    """
+    return{
+        # 사용자가 처음 제공한 값
+        "budget": budget,
+        "days": days,
+        # 목적지 추천 Node가 나중에 채울 값
+        "destination": "",
+        # 목적지가 해외인지 국내인지 저장할 값
+        # 아직 목적지가 정해지지 않았으므로 기본값 False
+        "is_overseas": False,
+        # 일정 수립 Node가 채울 값
+        "itinerary": [],
+        # 숙소 추천 Node가 채울 값
+        "hotels": [],
+        # 예산 배분 Node가 채울 값
+        "budget_plan": {},
+        # 최종 보고서 작성 Node가 채울 값
+        "summary": "",
+        # 전체 실행 로그를 저장할 리스트
+        "messages": [],
+    }
+
+# ─────────────────────────────────────────────────────────────
+# State 생성 테스트
+# ─────────────────────────────────────────────────────────────
+# 예산 250만원, 4박 여행이라는 초기 State를 만듭니다.
+state = make_initial_state(budget=250, days=4)
+# 전체 State 출력
+print("초기 State:", state)
+print()
+# budget 값만 확인
+print("budget:", state["budget"])  # 250
+# days 값만 확인
+print("days:", state["days"])      # 4
+# 아직 어떤 Node도 실행되지 않았으므로 messages는 빈 리스트입니다.
+print("messages:", state["messages"])  # []
